@@ -1,5 +1,6 @@
 from isaacgym import gymapi
 from isaacgym import gymtorch
+from isaacgym.torch_utils import *
 from dataclasses import dataclass, field
 import torch
 import numpy as np
@@ -120,6 +121,12 @@ class IsaacGymWrapper:
         self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_W, "up")
         self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_E, "high")
         self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_Q, "low")
+        self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_R, "row+")
+        self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_F, "row-")
+        self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_T, "pitch+")
+        self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_G, "pitch-")
+        self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_Y, "yaw+")
+        self._gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_H, "yaw-")
 
     def start_sim(self):
         self._sim = self._gym.create_sim(
@@ -375,6 +382,24 @@ class IsaacGymWrapper:
         actor_idx = self._robot_indices[robot_idx]
         self.set_actor_position_by_actor_index(position, actor_idx)
 
+    def set_actor_orientation_by_actor_index(
+        self, orientation: List[float], actor_idx: int
+    ) -> None:
+        self._root_state[:, actor_idx, 3:7] = orientation
+        self._gym.set_actor_root_state_tensor_indexed(
+            self._sim, gymtorch.unwrap_tensor(self._root_state), gymtorch.unwrap_tensor(torch.tensor([actor_idx], dtype=torch.int32, device=self.device)), 1
+        )
+
+    def set_actor_orientation_by_name(self, orientation: List[float], name: str) -> None:
+        actor_idx = [a.name for a in self.env_cfg].index(name)
+        self.set_actor_orientation_by_actor_index(orientation, actor_idx)
+
+    def set_actor_orientation_by_robot_index(
+        self, orientation: List[float], robot_idx: str
+    ) -> None:
+        actor_idx = self._robot_indices[robot_idx]
+        self.set_actor_orientation_by_actor_index(orientation, actor_idx)
+
     def set_actor_velocity_by_actor_index(
         self, velocity: List[float], actor_idx: int
     ) -> None:
@@ -618,7 +643,11 @@ class IsaacGymWrapper:
     def interactive_goal_update(self):
         for e in self._gym.query_viewer_action_events(self.viewer):
             goal_pos = self.get_actor_position_by_name("goal")
-            delta_pos = 0.1
+            goal_ori_quat = self.get_actor_orientation_by_name("goal")  # shape=(1, 4)
+            goal_ori_euler_x, goal_ori_euler_y, goal_ori_euler_z = get_euler_xyz(goal_ori_quat)
+
+            delta_pos = 0.05
+            delta_ori = np.pi / 12
             if e.action == "up":
                 goal_pos[0, 1] -= delta_pos
             if e.action == "down":
@@ -631,7 +660,24 @@ class IsaacGymWrapper:
                 goal_pos[0, 2] += delta_pos
             if e.action == "low":
                 goal_pos[0, 2] -= delta_pos
+            # add ori 
+            if e.action == "row+":
+                goal_ori_euler_x += delta_ori
+            if e.action == "row-":
+                goal_ori_euler_x -= delta_ori
+            if e.action == "pitch+":
+                goal_ori_euler_y += delta_ori
+            if e.action == "pitch-":
+                goal_ori_euler_y -= delta_ori
+            if e.action == "yaw+":
+                goal_ori_euler_z += delta_ori
+            if e.action == "yaw-":
+                goal_ori_euler_z -= delta_ori
+            goal_ori_quat_ = quat_from_euler_xyz(goal_ori_euler_x, goal_ori_euler_y, goal_ori_euler_z)
+
             self.set_actor_position_by_name(position=goal_pos, name="goal")
+            self.set_actor_orientation_by_name(orientation=goal_ori_quat_, name="goal")
+
 
     def step(self):
         self._gym.simulate(self._sim)

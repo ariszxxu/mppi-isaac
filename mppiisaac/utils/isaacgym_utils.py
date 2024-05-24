@@ -50,6 +50,26 @@ def load_asset(gym, sim, actor_cfg):
             radius=actor_cfg.size[0] + noise[0],
             options=asset_options,
         )
+    elif actor_cfg.type == "object":
+        asset_file = "urdf/" + actor_cfg.urdf_file
+        asset_options.flip_visual_attachments = actor_cfg.flip_visual
+        asset_options.disable_gravity = not actor_cfg.gravity
+        actor_asset = gym.load_asset(
+            sim=sim,
+            rootpath=asset_root_path,
+            filename=asset_file,
+            options=asset_options,
+        )
+    elif actor_cfg.type == "object_goal":
+        asset_file = "urdf/" + actor_cfg.urdf_file
+        asset_options.flip_visual_attachments = actor_cfg.flip_visual
+        asset_options.disable_gravity = not actor_cfg.gravity
+        actor_asset = gym.load_asset(
+            sim=sim,
+            rootpath=asset_root_path,
+            filename=asset_file,
+            options=asset_options,
+        )
     else:
         raise NotImplementedError(
             f"actor asset of type {actor_cfg.type} is not yet implemented!"
