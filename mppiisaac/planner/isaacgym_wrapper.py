@@ -210,8 +210,8 @@ class IsaacGymWrapper:
             self.visualize_link_buffer = []
 
         # helpfull slices
-        self.robot_indices = torch.tensor([i for i, a in enumerate(self.env_cfg) if a.type == "robot"], device=self.device)
-        self.obstacle_indices = torch.tensor([i for i, a in enumerate(self.env_cfg) if (a.type in ["sphere", "box"] and a.name != "dummy")], device=self.device)
+        self._robot_indices = torch.tensor([i for i, a in enumerate(self.env_cfg) if a.type == "robot"], device=self.device)
+        self._obstacle_indices = torch.tensor([i for i, a in enumerate(self.env_cfg) if (a.type in ["sphere", "box"] and a.name != "dummy")], device=self.device)
 
         if self._visualize_link_present:
             self.visualize_link_pos = self._rigid_body_state[

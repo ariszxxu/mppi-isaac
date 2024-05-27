@@ -1,0 +1,8 @@
+type: robot
+name: leap
+urdf_file: "leap_hand/leap_hand_right_dummy.urdf"
+visualize_link: "palm_lower"
+fixed: true
+flip_visual: false
+gravity: false
+init_joint_pose: [0.0, 0.0, 0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,]

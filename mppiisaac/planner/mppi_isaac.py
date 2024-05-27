@@ -46,7 +46,6 @@ class MPPIisaacPlanner(object):
             running_cost=self.running_cost,
             prior=self.prior,
         )
-
         # Note: place_holder variable to pass to mppi so it doesn't complain, while the real state is actually the isaacgym simulator itself.
         self.state_place_holder = torch.zeros((self.cfg.mppi.num_samples, self.cfg.nx))
     
